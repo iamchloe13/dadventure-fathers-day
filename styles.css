@@ -215,6 +215,16 @@ button {
   text-align: center;
 }
 
+.version-tag {
+  justify-self: center;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(23, 44, 45, 0.11);
+  color: rgba(23, 44, 45, 0.72);
+  font-weight: 900;
+}
+
 .portal-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }

@@ -2,6 +2,7 @@
   "use strict";
 
   const SAVE_KEY = "dadventure-save-v1";
+  const APP_VERSION = "0.1.0";
   const app = document.querySelector("#app");
 
   const worlds = [
@@ -372,6 +373,7 @@
         <div class="hub-header">
           <h1 class="title">Dadventure</h1>
           <p class="subtitle">${esc(state.playerName)}'s Six Worlds of Father's Day</p>
+          <small class="version-tag">Prototype v${APP_VERSION}</small>
           <div class="token-row">
             ${worlds.map((world) => `<span class="token-pill ${state.completed[world.id] ? "earned" : ""}">${world.token}</span>`).join("")}
           </div>
