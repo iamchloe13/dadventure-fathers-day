@@ -23,7 +23,8 @@ The game can also be opened directly through `index.html`, but the local server 
 - Pokemon-style intro with player name entry.
 - Hub with six worlds in any order.
 - Local progress saving.
-- First playable motocross level.
+- First playable motocross level with chase-style race view.
 - First playable Creature League level.
 - First playable Jedi, Destiny, and Deep Blue Fight levels.
-- Placeholder screens for Pixie and final ending.
+- First playable Pixie Rescue level.
+- Placeholder final letter ending with six-token gallery.

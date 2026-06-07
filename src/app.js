@@ -402,6 +402,7 @@
     else if (id === "jedi") renderJediIntro();
     else if (id === "creatures") renderCreatureMap();
     else if (id === "guardian") renderGuardianIntro();
+    else if (id === "pixie") renderPixieIntro();
     else if (id === "fishing") renderFishingRig();
     else renderPlaceholder(id);
   }
@@ -437,7 +438,7 @@
       <section class="screen">
         <div class="hero-card">
           <h1 class="title">The Garage Track</h1>
-          <p class="subtitle">Tune the bike, then beat the rival around a one-lap top-down track.</p>
+          <p class="subtitle">Tune the bike, preview the track, then race from a behind-the-rider arcade view.</p>
         </div>
         ${message ? `<div class="dialogue">${message}</div>` : ""}
         <div class="panel">
@@ -826,30 +827,175 @@
   }
 
   function drawMotoRace(ctx, canvas, player, rival) {
-    drawTrack(canvas, false);
-    drawBike(ctx, canvas, rival.p % 1, -0.18, "#202b37", "R");
-    drawBike(ctx, canvas, player.p % 1, player.lane * 0.26, "#f76d57", "D");
+    drawChaseTrack(ctx, canvas, player);
+    drawChaseRival(ctx, canvas, player, rival);
+    drawChaseBike(ctx, canvas, player);
   }
 
-  function drawBike(ctx, canvas, progress, lane, color, label) {
-    const base = trackPoint(progress, canvas.width, canvas.height);
-    const ahead = trackPoint((progress + 0.003) % 1, canvas.width, canvas.height);
-    const angle = Math.atan2(ahead.y - base.y, ahead.x - base.x);
-    const nx = -Math.sin(angle);
-    const ny = Math.cos(angle);
-    ctx.save();
-    ctx.translate(base.x + nx * lane * 120, base.y + ny * lane * 120);
-    ctx.rotate(angle);
-    ctx.fillStyle = color;
-    ctx.strokeStyle = "#fff7e1";
-    ctx.lineWidth = 4;
-    ctx.fillRect(-20, -13, 40, 26);
-    ctx.strokeRect(-20, -13, 40, 26);
+  function drawChaseTrack(ctx, canvas, player) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const section = motoSection(player.p);
+    const heatTint = Math.min(0.32, player.heat / 360);
+    ctx.clearRect(0, 0, w, h);
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.58);
+    sky.addColorStop(0, "#88c9dc");
+    sky.addColorStop(0.72, "#f8e7c8");
+    sky.addColorStop(1, "#b5a46c");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#547f61";
+    ctx.fillRect(0, h * 0.45, w, h * 0.55);
+    drawDistantHills(ctx, w, h);
+    drawChaseRoad(ctx, w, h, player, section);
+    if (heatTint > 0) {
+      ctx.fillStyle = `rgba(247, 109, 87, ${heatTint})`;
+      ctx.fillRect(0, 0, w, h);
+    }
+    ctx.fillStyle = "rgba(16, 34, 37, 0.76)";
+    ctx.fillRect(22, 22, 260, 54);
     ctx.fillStyle = "#fff7e1";
-    ctx.font = "bold 18px Georgia";
+    ctx.font = "bold 25px Georgia";
+    ctx.fillText(sectionLabel(section), 38, 58);
+  }
+
+  function drawDistantHills(ctx, w, h) {
+    ctx.fillStyle = "#3f6d55";
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.46);
+    for (let x = 0; x <= w; x += 80) {
+      ctx.lineTo(x, h * 0.40 + Math.sin(x * 0.015) * 26);
+    }
+    ctx.lineTo(w, h * 0.55);
+    ctx.lineTo(0, h * 0.55);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawChaseRoad(ctx, w, h, player, section) {
+    const horizon = h * 0.42;
+    const roadBottom = h + 40;
+    const curve = Math.sin(player.p * Math.PI * 4) * 46;
+    const roadColor = section === "mud" ? "#654331" : section === "straight" ? "#c48a4f" : "#a76b3f";
+    for (let i = 18; i >= 0; i -= 1) {
+      const near = i / 18;
+      const far = (i - 1) / 18;
+      const y1 = horizon + (roadBottom - horizon) * near * near;
+      const y2 = horizon + (roadBottom - horizon) * Math.max(0, far) * Math.max(0, far);
+      const width1 = 90 + near * near * 820;
+      const width2 = 90 + Math.max(0, far) * Math.max(0, far) * 820;
+      const center1 = w / 2 + curve * (1 - near) - player.lane * 70 * near;
+      const center2 = w / 2 + curve * (1 - Math.max(0, far)) - player.lane * 70 * Math.max(0, far);
+      ctx.fillStyle = i % 2 === 0 ? roadColor : shadeDirt(roadColor);
+      ctx.beginPath();
+      ctx.moveTo(center1 - width1 / 2, y1);
+      ctx.lineTo(center1 + width1 / 2, y1);
+      ctx.lineTo(center2 + width2 / 2, y2);
+      ctx.lineTo(center2 - width2 / 2, y2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 247, 225, 0.32)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    drawTrackHazard(ctx, w, h, section);
+  }
+
+  function shadeDirt(color) {
+    return ({
+      "#654331": "#5a382b",
+      "#c48a4f": "#b97d44",
+      "#a76b3f": "#965c36"
+    })[color] || color;
+  }
+
+  function drawTrackHazard(ctx, w, h, section) {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.font = "bold 28px Georgia";
+    if (section === "mud") {
+      ctx.fillStyle = "rgba(58, 38, 31, 0.72)";
+      for (let i = 0; i < 6; i += 1) ctx.beginPath(), ctx.ellipse(w / 2 - 210 + i * 82, h * 0.66 + (i % 2) * 34, 42, 18, 0, 0, Math.PI * 2), ctx.fill();
+      ctx.fillStyle = "#fff7e1";
+      ctx.fillText("Mud Pit", w / 2, h * 0.55);
+    }
+    if (section === "bumps") {
+      ctx.fillStyle = "rgba(255, 247, 225, 0.36)";
+      for (let i = 0; i < 5; i += 1) ctx.fillRect(w / 2 - 260 + i * 130, h * 0.58 + i * 18, 86, 12);
+      ctx.fillStyle = "#172c2d";
+      ctx.fillText("Rhythm Bumps", w / 2, h * 0.55);
+    }
+    if (section === "ramp") {
+      ctx.fillStyle = "#d4a15f";
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 120, h * 0.68);
+      ctx.lineTo(w / 2 + 120, h * 0.68);
+      ctx.lineTo(w / 2 + 58, h * 0.51);
+      ctx.lineTo(w / 2 - 58, h * 0.51);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#172c2d";
+      ctx.fillText("Big Ramp", w / 2, h * 0.48);
+    }
+    ctx.restore();
+  }
+
+  function drawChaseRival(ctx, canvas, player, rival) {
+    const rawGap = rival.p - player.p;
+    const gap = clamp(rawGap, -0.09, 0.18);
+    if (rawGap < -0.06) {
+      ctx.fillStyle = "rgba(255, 247, 225, 0.82)";
+      ctx.font = "bold 24px Georgia";
+      ctx.fillText("Rival behind", canvas.width - 180, 58);
+      return;
+    }
+    const depth = clamp(1 - gap / 0.18, 0.22, 1);
+    const x = canvas.width / 2 + 90 * Math.sin((player.p + gap) * Math.PI * 6) - player.lane * 80 * depth;
+    const y = canvas.height * (0.47 + depth * 0.24);
+    drawSimpleRider(ctx, x, y, depth * 0.9, "#202b37", "R");
+  }
+
+  function drawChaseBike(ctx, canvas, player) {
+    const x = canvas.width / 2 + player.lane * 260;
+    const y = canvas.height - 102 - (player.airborne > 0 ? 38 : 0);
+    const wobble = Math.sin(performance.now() / 90) * (player.airborne > 0 ? 4 : 1.6);
+    drawSimpleRider(ctx, x + wobble, y, 1.35, "#f76d57", "DAD");
+    if (player.boost > 0) {
+      ctx.fillStyle = "rgba(255, 207, 90, 0.52)";
+      ctx.beginPath();
+      ctx.moveTo(x - 62, y + 42);
+      ctx.lineTo(x + 62, y + 42);
+      ctx.lineTo(x, y + 122);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  function drawSimpleRider(ctx, x, y, scale, color, label) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "#172c2d";
+    ctx.lineWidth = 4;
+    ctx.fillRect(-34, -10, 68, 34);
+    ctx.strokeRect(-34, -10, 68, 34);
+    ctx.fillStyle = "#172c2d";
+    ctx.beginPath();
+    ctx.arc(-28, 28, 15, 0, Math.PI * 2);
+    ctx.arc(28, 28, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f3bd86";
+    ctx.beginPath();
+    ctx.arc(0, -32, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#324550";
+    ctx.fillRect(-19, -47, 38, 18);
+    ctx.fillStyle = "#fff7e1";
+    ctx.font = "bold 15px Georgia";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(label, 0, 1);
+    ctx.fillText(label, 0, 8);
     ctx.restore();
   }
 
@@ -1837,12 +1983,234 @@
     document.querySelector("#hubAfterFishing").addEventListener("click", () => renderHub("Tideheart Token earned."));
   }
 
+  function renderPixieIntro() {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">The Pixie Rescue</h1>
+          <p class="subtitle">Find three memory keys, cross Crocodile Cove, and rescue the fairy from the captain's ship.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Narrator</span>
+          A tiny light flickers over the water.
+          <br><br>
+          The fairy is trapped aboard the captain's ship, and the island is waiting for Dad to do what Dad does.
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Dada help!
+        </div>
+        <div class="button-row">
+          <button class="btn" id="startPixie">Enter Never Island</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#startPixie").addEventListener("click", () => renderPixieKeys());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderPixieKeys(keys = 0, dust = 3, message = "Pick the safest path and collect the memory keys.") {
+    if (keys >= 3) return renderPixieCove(dust);
+    if (dust <= 0) return renderPixieLoss("The pixie dust ran out before Dad found the keys.");
+    const rooms = [
+      { name: "Lost Lagoon", key: true, risk: "low" },
+      { name: "Shadow Ferns", key: false, risk: "high" },
+      { name: "Moonlit Rock", key: true, risk: "medium" }
+    ].sort(() => Math.random() - 0.5);
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Memory Keys</h1>
+          <p class="subtitle">Keys: ${keys}/3 | Pixie Dust: ${dust}</p>
+        </div>
+        <div class="dialogue"><span class="speaker">Fairy Light</span>${message}</div>
+        <div class="challenge-grid">
+          ${rooms.map((room, index) => `
+            <button class="stat-card" data-room="${index}">
+              <strong>${room.name}</strong>
+              <span>Risk: ${room.risk}</span>
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-room]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const room = rooms[Number(button.dataset.room)];
+        if (room.key) renderPixieKeys(keys + 1, dust, `${room.name} glows. Dad found a memory key.`);
+        else renderPixieKeys(keys, dust - 1, `${room.name} was a trap. Adam: To be fair, it was called Shadow Ferns.`);
+      });
+    });
+  }
+
+  function renderPixieCove(dust, steps = 0, message = "Cross when the crocodile shadow sinks below the water.") {
+    if (steps >= 4) return renderPixieShip(dust);
+    if (dust <= 0) return renderPixieLoss("The cove swallowed the last bit of pixie dust.");
+    const safe = Math.floor(Math.random() * 3);
+    const options = ["Leap Now", "Wait A Beat", "Float Over"];
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Crocodile Cove</h1>
+          <p class="subtitle">Crossing Steps: ${steps}/4 | Pixie Dust: ${dust}</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Narrator</span>
+          ${message}
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Tick tock!
+        </div>
+        <div class="lane-grid">
+          ${options.map((option, index) => `
+            <button class="lane-card ${index === safe ? "active" : ""}" data-cove="${index}">
+              ${option}<br>${index === safe ? "Safe ripple" : "Croc shadow"}
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-cove]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const picked = Number(button.dataset.cove);
+        if (picked === safe) renderPixieCove(dust, steps + 1, "Clean crossing. Dad keeps moving toward the ship.");
+        else renderPixieCove(dust - 1, steps, "Splash. Not eaten, but deeply judged by a reptile.");
+      });
+    });
+  }
+
+  function renderPixieShip(dust) {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Captain's Ship</h1>
+          <p class="subtitle">Three memory keys unlock the fairy cage.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Captain</span>
+          Nobody rescues the little light from my ship.
+          <br><br>
+          <span class="speaker">Adam</span>
+          Historically bad thing to say to Dad.
+        </div>
+        <div class="button-row">
+          <button class="btn" id="unlockFairy">Unlock Cage</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#unlockFairy").addEventListener("click", () => renderPixieDuel(0, 3 + Math.max(0, dust)));
+  }
+
+  function renderPixieDuel(hits = 0, courage = 3, message = "Watch the captain's move and answer with the right action.") {
+    if (hits >= 3) return renderPixieWin();
+    if (courage <= 0) return renderPixieLoss("The captain knocks Dad back across the deck.");
+    const moves = [
+      { tell: "The captain swings the hook wide.", answer: "Duck", options: ["Duck", "Strike", "Jump"] },
+      { tell: "The captain's coat catches on the rail.", answer: "Strike", options: ["Duck", "Strike", "Jump"] },
+      { tell: "A rope sweeps across the deck.", answer: "Jump", options: ["Duck", "Strike", "Jump"] }
+    ];
+    const moveSet = moves[Math.floor(Math.random() * moves.length)];
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Deck Duel</h1>
+          <p class="subtitle">Hits: ${hits}/3 | Courage: ${courage}</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Captain</span>
+          ${moveSet.tell}
+          <br><br>
+          <span class="speaker">Fairy</span>
+          ${message}
+        </div>
+        <div class="button-row">
+          ${moveSet.options.map((option) => `<button class="btn" data-pixie-duel="${option}">${option}</button>`).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-pixie-duel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.pixieDuel === moveSet.answer) renderPixieDuel(hits + 1, courage, "That worked. The cage glows brighter.");
+        else renderPixieDuel(hits, courage - 1, "Wrong move. Adam: He did telegraph that pretty hard.");
+      });
+    });
+  }
+
+  function renderPixieLoss(message) {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Rescue Failed</h1>
+          <p class="subtitle">The fairy waits. Dad can try again.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Narrator</span>
+          ${message}
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Again Dada!
+        </div>
+        <div class="button-row">
+          <button class="btn" id="retryPixie">Retry Rescue</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#retryPixie").addEventListener("click", () => renderPixieKeys());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderPixieWin() {
+    completeWorld("pixie");
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Pixieheart</h1>
+          <p class="subtitle">The fairy is safe.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Fairy</span>
+          You came for me.
+          <br><br>
+          <span class="speaker">Narrator</span>
+          Of course he did.
+          <br><br>
+          That is what Dad does.
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Dada!
+          <br><br>
+          <span class="speaker">Narrator</span>
+          Pixieheart Token unlocked.
+        </div>
+        <button class="btn" id="hubAfterPixie">Return To Hub</button>
+      </section>
+    `);
+    document.querySelector("#hubAfterPixie").addEventListener("click", () => renderHub("Pixieheart Token earned."));
+  }
+
   function renderFinale() {
+    const tokenLines = [
+      ["Gearheart", "For the Dad who keeps going, even when the track gets rough."],
+      ["Starheart", "For the Dad who chooses the light when the shadow gets loud."],
+      ["Teamheart", "For the Dad who never fights alone."],
+      ["Lightheart", "For the Dad whose fireteam always knows he is coming home."],
+      ["Pixieheart", "For the Dad who rescues the little light because that is what Dad does."],
+      ["Tideheart", "For the Dad who holds on when the fight takes hours."]
+    ];
     render(`
       <section class="screen">
         <div class="hero-card">
           <h1 class="title">The Real Treasure</h1>
           <p class="subtitle">Final letter placeholder. We will write this when you are ready.</p>
+        </div>
+        <div class="challenge-grid">
+          ${tokenLines.map(([token, line]) => `
+            <div class="token-card">
+              <h2>${token}</h2>
+              <p>${line}</p>
+            </div>
+          `).join("")}
         </div>
         <div class="dialogue">
           <span class="speaker">Adam</span>
@@ -1853,6 +2221,8 @@
           <br><br>
           <span class="speaker">Narrator</span>
           The six worlds glow together. The final message is waiting to be written.
+          <br><br>
+          For now, the tokens know the shape of the story.
         </div>
         <button class="btn" id="backHub">Back To Hub</button>
       </section>
