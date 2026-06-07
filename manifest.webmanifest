@@ -1,0 +1,16 @@
+{
+  "name": "Dadventure: The Five Worlds of Father's Day",
+  "short_name": "Dadventure",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8e7c8",
+  "theme_color": "#172c2d",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%23172c2d'/%3E%3Cpath d='M96 149c-29-17-49-34-49-59 0-18 13-31 30-31 9 0 16 4 19 10 4-6 11-10 20-10 17 0 29 13 29 31 0 25-20 42-49 59Z' fill='%23ffcf5a'/%3E%3Cpath d='M63 91h66' stroke='%23f76d57' stroke-width='12' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

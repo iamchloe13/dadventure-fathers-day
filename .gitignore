@@ -1,0 +1,27 @@
+# Python / PyCharm local environment
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+
+# OS/editor clutter
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs and local temporary output
+*.log
+tmp/
+temp/
+
+# Node dependencies/build outputs if we add tooling later
+node_modules/
+dist/
+build/
+.parcel-cache/
+.vite/
+
+# Local environment files
+.env
+.env.*
