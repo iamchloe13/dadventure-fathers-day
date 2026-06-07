@@ -454,27 +454,25 @@
   }
 
   function renderPlaceholder(id) {
-    const world = worlds.find((item) => item.id === id);
+    const world = worlds.find((item) => item.id === id) || {
+      title: "Unknown World",
+      token: "Unknown"
+    };
     render(`
       <section class="screen">
         <div class="hero-card">
           <h1 class="title">${world.title}</h1>
-          <p class="subtitle">Playable version not built yet. This placeholder lets us wire the hub and test progression.</p>
+          <p class="subtitle">This world is not available.</p>
         </div>
         <div class="dialogue">
           <span class="speaker">Adam</span>
-          This world is still under construction. I am choosing to believe that is intentional.
+          Something sent Dad to a world that is not wired up. That is suspicious and probably not canon.
         </div>
         <div class="button-row">
-          <button class="btn" id="completePlaceholder">Mark Complete For Testing</button>
           <button class="btn secondary" id="backHub">Back To Hub</button>
         </div>
       </section>
     `);
-    document.querySelector("#completePlaceholder").addEventListener("click", () => {
-      completeWorld(id);
-      renderHub(`${world.token} Token earned in placeholder mode.`);
-    });
     document.querySelector("#backHub").addEventListener("click", () => renderHub());
   }
 
