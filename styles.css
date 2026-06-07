@@ -280,6 +280,54 @@ button {
   background: var(--sun);
 }
 
+.world-moto .portal-icon {
+  background: #7a3f28;
+}
+
+.world-jedi .portal-icon {
+  background: #244765;
+}
+
+.world-creatures .portal-icon {
+  background: #4f7b4c;
+}
+
+.world-guardian .portal-icon {
+  background: #315c7d;
+}
+
+.world-pixie .portal-icon {
+  background: #9d5c61;
+}
+
+.world-fishing .portal-icon {
+  background: #15576d;
+}
+
+.world-moto::after {
+  background: rgba(183, 125, 72, 0.35);
+}
+
+.world-jedi::after {
+  background: rgba(134, 183, 199, 0.36);
+}
+
+.world-creatures::after {
+  background: rgba(84, 127, 97, 0.28);
+}
+
+.world-guardian::after {
+  background: rgba(255, 207, 90, 0.32);
+}
+
+.world-pixie::after {
+  background: rgba(247, 109, 87, 0.24);
+}
+
+.world-fishing::after {
+  background: rgba(30, 123, 140, 0.32);
+}
+
 .token-row {
   display: flex;
   flex-wrap: wrap;
