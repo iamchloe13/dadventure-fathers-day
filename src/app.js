@@ -377,6 +377,7 @@
           ${worlds.map((world) => `
             <article class="portal-card ${state.completed[world.id] ? "complete" : ""}">
               <div class="portal-icon">${world.icon}</div>
+              <span class="status-badge">${state.completed[world.id] ? "Token Earned" : "Open"}</span>
               <div>
                 <h2>${world.title}</h2>
                 <p>${world.summary}</p>
