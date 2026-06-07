@@ -237,7 +237,11 @@
   }
 
   function saveState() {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    } catch {
+      // The game remains playable if storage is blocked; progress just will not persist.
+    }
   }
 
   function stopLoops() {
@@ -256,7 +260,7 @@
   function render(html) {
     stopLoops();
     app.innerHTML = html;
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   function esc(value) {
@@ -427,7 +431,11 @@
       </section>
     `);
     document.querySelector("#confirmReset").addEventListener("click", () => {
-      localStorage.removeItem(SAVE_KEY);
+      try {
+        localStorage.removeItem(SAVE_KEY);
+      } catch {
+        // Ignore blocked storage; the in-memory state still resets for this session.
+      }
       state = defaultState();
       selectedAvatar = "Riding Gear";
       renderIntro(0);
@@ -1875,7 +1883,7 @@
     document.querySelector("#backHub").addEventListener("click", () => renderHub());
   }
 
-  function renderFishingHook(rig, signal = "The rod tip is quiet.", misses = 0) {
+  function renderFishingHook(rig, signal = "quiet", misses = 0) {
     if (misses >= 3) {
       return renderFishingRig(`<span class="speaker">Adam</span>The fish stole the bait three times. I am not mad. I am just narrating your crimes.`);
     }

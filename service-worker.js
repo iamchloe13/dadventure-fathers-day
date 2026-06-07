@@ -1,4 +1,4 @@
-const CACHE_NAME = "dadventure-v5";
+const CACHE_NAME = "dadventure-v6";
 const ASSETS = [
   "./",
   "./index.html",
