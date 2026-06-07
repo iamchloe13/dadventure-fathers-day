@@ -201,7 +201,7 @@
   let selectedAvatar = state.avatar || "Riding Gear";
   let raceLoop = null;
   let catchLoop = null;
-  let actionLoop = null;
+  let cleanupFns = [];
   let battle = null;
 
   function move(name, power, text = "", effect = "damage") {
@@ -243,10 +243,14 @@
   function stopLoops() {
     if (raceLoop) cancelAnimationFrame(raceLoop);
     if (catchLoop) cancelAnimationFrame(catchLoop);
-    if (actionLoop) cancelAnimationFrame(actionLoop);
     raceLoop = null;
     catchLoop = null;
-    actionLoop = null;
+    cleanupFns.forEach((cleanup) => cleanup());
+    cleanupFns = [];
+  }
+
+  function addCleanup(cleanup) {
+    cleanupFns.push(cleanup);
   }
 
   function render(html) {
@@ -385,6 +389,11 @@
           <h2>Final Door</h2>
           <p>${allDone ? "All six tokens are glowing. The final Father's Day ending is unlocked." : `${earned}/${worlds.length} tokens earned. Finish every world to open this door.`}</p>
           <button class="btn ${allDone ? "" : "secondary"}" id="finalDoor">${allDone ? "Open Final Door" : "Locked"}</button>
+          <button class="btn secondary" id="resetProgress">Reset Progress</button>
+        </div>
+        <div class="panel">
+          <h2>Playtest Controls</h2>
+          <p>Mobile uses the on-screen buttons. Desktop testing also supports arrow keys or WASD. Motocross gas uses Up/W/Space, and boost/trick uses Shift, Enter, or B.</p>
         </div>
       </section>
     `);
@@ -395,6 +404,34 @@
     document.querySelector("#finalDoor").addEventListener("click", () => {
       if (allDone) renderFinale();
     });
+    document.querySelector("#finalDoor").disabled = !allDone;
+    document.querySelector("#resetProgress").addEventListener("click", () => renderResetConfirm());
+  }
+
+  function renderResetConfirm() {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Reset?</h1>
+          <p class="subtitle">This clears the saved name, avatar, tokens, caught creatures, and level progress on this device.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          This is the button for when Dad names himself something ridiculous and we need a do-over.
+        </div>
+        <div class="button-row">
+          <button class="btn warning" id="confirmReset">Yes, Reset Game</button>
+          <button class="btn secondary" id="cancelReset">Cancel</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#confirmReset").addEventListener("click", () => {
+      localStorage.removeItem(SAVE_KEY);
+      state = defaultState();
+      selectedAvatar = "Riding Gear";
+      renderIntro(0);
+    });
+    document.querySelector("#cancelReset").addEventListener("click", () => renderHub());
   }
 
   function openWorld(id) {
@@ -558,6 +595,37 @@
       button.addEventListener("pointercancel", up);
       button.addEventListener("pointerleave", up);
     });
+    const keyDown = (event) => {
+      const key = event.key.toLowerCase();
+      if (["arrowleft", "a"].includes(key)) {
+        event.preventDefault();
+        controls.left = true;
+      }
+      if (["arrowright", "d"].includes(key)) {
+        event.preventDefault();
+        controls.right = true;
+      }
+      if (["arrowup", "w", " "].includes(key)) {
+        event.preventDefault();
+        controls.gas = true;
+      }
+      if (["shift", "enter", "b"].includes(key) && !event.repeat) {
+        event.preventDefault();
+        useMotoBoost(player);
+      }
+    };
+    const keyUp = (event) => {
+      const key = event.key.toLowerCase();
+      if (["arrowleft", "a"].includes(key)) controls.left = false;
+      if (["arrowright", "d"].includes(key)) controls.right = false;
+      if (["arrowup", "w", " "].includes(key)) controls.gas = false;
+    };
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
+    addCleanup(() => {
+      window.removeEventListener("keydown", keyDown);
+      window.removeEventListener("keyup", keyUp);
+    });
 
     function tick(now) {
       const dt = Math.min(0.04, (now - last) / 1000);
@@ -606,6 +674,7 @@
 
       rival.p += rival.speed * dt;
       document.querySelector("#heatStatus").textContent = `Heat ${Math.round(player.heat)}%`;
+      document.querySelector("#lapStatus").textContent = `Dad ${Math.min(100, Math.round(player.p * 100))}% | Rival ${Math.min(100, Math.round(rival.p * 100))}%`;
       if (player.p >= 1) finishMoto(true);
       else if (rival.p >= 1) finishMoto(false);
     }
@@ -1063,6 +1132,24 @@
     document.querySelectorAll("[data-move]").forEach((button) => {
       button.addEventListener("click", () => moveDad(button.dataset.move));
     });
+    const mapKeys = (event) => {
+      const key = event.key.toLowerCase();
+      const direction = {
+        arrowup: "up",
+        w: "up",
+        arrowdown: "down",
+        s: "down",
+        arrowleft: "left",
+        a: "left",
+        arrowright: "right",
+        d: "right"
+      }[key];
+      if (!direction) return;
+      event.preventDefault();
+      moveDad(direction);
+    };
+    window.addEventListener("keydown", mapKeys);
+    addCleanup(() => window.removeEventListener("keydown", mapKeys));
     document.querySelectorAll("[data-creature]").forEach((button) => {
       button.addEventListener("click", () => {
         const creature = creatures.find((item) => item.id === button.dataset.creature);
@@ -1374,7 +1461,7 @@
       <section class="screen">
         <div class="hero-card">
           <h1 class="title">The Light Side Trial</h1>
-          <p class="subtitle">Dodge the asteroid field, block the incoming fire, choose the light, and win the duel.</p>
+          <p class="subtitle">Dodge the asteroid field, block incoming fire, choose the light, and win the duel.</p>
         </div>
         <div class="dialogue">
           <span class="speaker">Adam</span>
@@ -1393,7 +1480,7 @@
     document.querySelector("#backHub").addEventListener("click", () => renderHub());
   }
 
-  function renderJediAsteroids(score = 0, hp = 3, wave = 1, message = "Drag the ship through the safe lane. In this prototype, choose the lane that is not glowing red.") {
+  function renderJediAsteroids(score = 0, hp = 3, wave = 1, message = "Choose the safe lane and collect enough light to reach the trial gate.") {
     if (score >= 10) return renderJediSaber();
     if (hp <= 0) return renderJediLoss("The asteroid field wins this round. Space rocks remain undefeated.");
     const danger = Math.floor(Math.random() * 3);
@@ -1622,7 +1709,8 @@
     if (!mission.boss && mission.fragments >= 5) {
       mission.boss = true;
       mission.enemyHp = 140;
-      mission.log = "The Distance steps into the light. Boss fight.";
+      mission.hp = 100;
+      mission.log = "The Home Light restores Dad before the final fight. The Distance steps into the light.";
     }
     render(`
       <section class="screen">

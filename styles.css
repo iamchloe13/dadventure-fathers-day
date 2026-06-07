@@ -141,6 +141,13 @@ button {
   box-shadow: 0 4px 0 rgba(23, 44, 45, 0.2);
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none;
+  box-shadow: none;
+}
+
 .name-input {
   width: min(100%, 440px);
   min-height: 58px;
