@@ -63,3 +63,8 @@ For Adam to test from another computer, add him as a collaborator on the private
 - First playable Jedi, Destiny, and Deep Blue Fight levels.
 - First playable Pixie Rescue level.
 - Placeholder final letter ending with six-token gallery.
+
+## Planning Files
+
+- `PLAYTEST.md` has the manual test checklist.
+- `CONTENT-TODO.md` lists personal details still worth collecting.
