@@ -29,6 +29,7 @@ npm test
 ```
 
 This currently runs a JavaScript syntax check against `src/app.js`.
+It also checks that required game files, world IDs, tokens, and cached assets are present.
 
 The game can also be opened directly through `index.html`, but the local server is better for PWA/service worker testing.
 

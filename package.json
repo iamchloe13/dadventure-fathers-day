@@ -5,7 +5,8 @@
   "description": "Static mobile web game prototype for Dadventure: The Six Worlds of Father's Day.",
   "scripts": {
     "check": "node --check src/app.js",
+    "validate": "node scripts/validate.mjs",
     "serve": "python -m http.server 8000",
-    "test": "npm run check"
+    "test": "npm run check && npm run validate"
   }
 }
