@@ -1,4 +1,4 @@
-# Dadventure: The Five Worlds of Father's Day
+# Dadventure: The Six Worlds of Father's Day
 
 Static mobile web/PWA game prototype. No Python packages or JavaScript packages are required.
 
@@ -21,8 +21,9 @@ The game can also be opened directly through `index.html`, but the local server 
 ## Current Scope
 
 - Pokemon-style intro with player name entry.
-- Hub with five worlds in any order.
+- Hub with six worlds in any order.
 - Local progress saving.
 - First playable motocross level.
 - First playable Creature League level.
-- Placeholder screens for Jedi, Destiny, Pixie, and final ending.
+- First playable Jedi, Destiny, and Deep Blue Fight levels.
+- Placeholder screens for Pixie and final ending.

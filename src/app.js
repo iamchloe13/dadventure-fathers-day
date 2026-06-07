@@ -39,6 +39,13 @@
       icon: "PX",
       token: "Pixieheart",
       summary: "Rescue the fairy from the hook-handed troublemaker."
+    },
+    {
+      id: "fishing",
+      title: "The Deep Blue Fight",
+      icon: "DB",
+      token: "Tideheart",
+      summary: "Battle the 228 lb swordfish from Marathon Key."
     }
   ];
 
@@ -194,6 +201,7 @@
   let selectedAvatar = state.avatar || "Riding Gear";
   let raceLoop = null;
   let catchLoop = null;
+  let actionLoop = null;
   let battle = null;
 
   function move(name, power, text = "", effect = "damage") {
@@ -235,8 +243,10 @@
   function stopLoops() {
     if (raceLoop) cancelAnimationFrame(raceLoop);
     if (catchLoop) cancelAnimationFrame(catchLoop);
+    if (actionLoop) cancelAnimationFrame(actionLoop);
     raceLoop = null;
     catchLoop = null;
+    actionLoop = null;
   }
 
   function render(html) {
@@ -294,7 +304,7 @@
         <section class="screen">
           <div class="hero-card">
             <h1 class="title">Dadventure</h1>
-            <p class="subtitle">The Five Worlds of Father's Day</p>
+            <p class="subtitle">The Six Worlds of Father's Day</p>
           </div>
           <div class="dialogue">
             <span class="speaker">${line.speaker}</span>
@@ -353,7 +363,7 @@
       <section class="screen">
         <div class="hub-header">
           <h1 class="title">Dadventure</h1>
-          <p class="subtitle">${esc(state.playerName)}'s Five Worlds of Father's Day</p>
+          <p class="subtitle">${esc(state.playerName)}'s Six Worlds of Father's Day</p>
           <div class="token-row">
             ${worlds.map((world) => `<span class="token-pill ${state.completed[world.id] ? "earned" : ""}">${world.token}</span>`).join("")}
           </div>
@@ -373,7 +383,7 @@
         </div>
         <div class="panel">
           <h2>Final Door</h2>
-          <p>${allDone ? "All five tokens are glowing. The final Father's Day ending is unlocked." : `${earned}/5 tokens earned. Finish every world to open this door.`}</p>
+          <p>${allDone ? "All six tokens are glowing. The final Father's Day ending is unlocked." : `${earned}/${worlds.length} tokens earned. Finish every world to open this door.`}</p>
           <button class="btn ${allDone ? "" : "secondary"}" id="finalDoor">${allDone ? "Open Final Door" : "Locked"}</button>
         </div>
       </section>
@@ -389,7 +399,10 @@
 
   function openWorld(id) {
     if (id === "moto") renderMotoGarage();
+    else if (id === "jedi") renderJediIntro();
     else if (id === "creatures") renderCreatureMap();
+    else if (id === "guardian") renderGuardianIntro();
+    else if (id === "fishing") renderFishingRig();
     else renderPlaceholder(id);
   }
 
@@ -1210,6 +1223,620 @@
     document.querySelector("#hubAfterCreature").addEventListener("click", () => renderHub("Teamheart Token earned."));
   }
 
+  function renderJediIntro() {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">The Light Side Trial</h1>
+          <p class="subtitle">Dodge the asteroid field, block the incoming fire, choose the light, and win the duel.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          Congratulations, Dad. You have been promoted to Jedi because apparently the galaxy is short-staffed.
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Dada go!
+        </div>
+        <div class="button-row">
+          <button class="btn" id="startJedi">Begin Trial</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#startJedi").addEventListener("click", () => renderJediAsteroids());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderJediAsteroids(score = 0, hp = 3, wave = 1, message = "Drag the ship through the safe lane. In this prototype, choose the lane that is not glowing red.") {
+    if (score >= 10) return renderJediSaber();
+    if (hp <= 0) return renderJediLoss("The asteroid field wins this round. Space rocks remain undefeated.");
+    const danger = Math.floor(Math.random() * 3);
+    const lanes = ["Left", "Center", "Right"];
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Asteroid Run</h1>
+          <p class="subtitle">Light Orbs: ${score}/10 | Shields: ${hp}</p>
+        </div>
+        <div class="dialogue"><span class="speaker">Mission</span>${message}</div>
+        <div class="lane-grid">
+          ${lanes.map((lane, index) => `
+            <button class="lane-card ${index === danger ? "active" : ""}" data-lane="${index}">
+              ${lane}<br>${index === danger ? "Asteroid" : "Safe Light"}
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-lane]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const picked = Number(button.dataset.lane);
+        if (picked === danger) renderJediAsteroids(score, hp - 1, wave + 1, "Impact. Adam is absolutely going to mention that later.");
+        else renderJediAsteroids(score + 1, hp, wave + 1, "Clean dodge. The light orb joins the ship trail.");
+      });
+    });
+  }
+
+  function renderJediSaber(blocks = 0, hp = 3, message = "Tap the matching direction to block the training bolt.") {
+    if (blocks >= 12) return renderJediChoices();
+    if (hp <= 0) return renderJediLoss("Too many bolts got through. The training droid looks smug, which is rude.");
+    const shot = Math.floor(Math.random() * 3);
+    const lanes = ["Left Block", "Center Block", "Right Block"];
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Saber Defense</h1>
+          <p class="subtitle">Blocks: ${blocks}/12 | Focus: ${hp}</p>
+        </div>
+        <div class="dialogue"><span class="speaker">Training Droid</span>${message}</div>
+        <div class="lane-grid">
+          ${lanes.map((lane, index) => `
+            <button class="lane-card ${index === shot ? "active" : ""}" data-block="${index}">
+              ${lane}<br>${index === shot ? "Incoming Bolt" : "Clear"}
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-block]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const picked = Number(button.dataset.block);
+        if (picked === shot) renderJediSaber(blocks + 1, hp, "Blocked. The saber hums brighter.");
+        else renderJediSaber(blocks, hp - 1, "Missed block. Adam: The laser was kind of the obvious glowing part.");
+      });
+    });
+  }
+
+  function renderJediChoices(step = 0, charge = 0, message = "The shadow tries to pull Dad off the light side.") {
+    const choices = [
+      {
+        prompt: "The Shadow: You are tired. Stay gone. Rest alone.",
+        right: "My family is my strength.",
+        wrong: ["I fight only for myself.", "I'll think about it after snacks."]
+      },
+      {
+        prompt: "The Shadow: Anger is faster.",
+        right: "Light is stronger when I slow down.",
+        wrong: ["Anger gets better gas mileage.", "I will simply glare harder."]
+      },
+      {
+        prompt: "The Shadow: Distance makes love quieter.",
+        right: "No. Love reaches home.",
+        wrong: ["Maybe if the service is bad.", "Only if the snacks run out."]
+      }
+    ];
+    if (step >= choices.length) return renderJediDuel(0, 3, charge);
+    const current = choices[step];
+    const options = [current.right, ...current.wrong].sort(() => Math.random() - 0.5);
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Light Side Choice</h1>
+          <p class="subtitle">Saber Charge: ${charge}/3</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Shadow</span>
+          ${current.prompt}
+          <br><br>
+          <span class="speaker">Mission</span>
+          ${message}
+        </div>
+        <div class="button-row">
+          ${options.map((option) => `<button class="btn secondary" data-choice="${esc(option)}">${option}</button>`).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const correct = button.dataset.choice === current.right;
+        renderJediChoices(step + 1, charge + (correct ? 1 : 0), correct ? "The saber brightens." : "The saber flickers, but Dad stays standing.");
+      });
+    });
+  }
+
+  function renderJediDuel(hits = 0, hp = 3, charge = 0, message = "Read the shadow's move and answer correctly.") {
+    if (hits >= 3) return renderJediWin(charge);
+    if (hp <= 0) return renderJediLoss("The shadow wins the duel. Dad can retry from the trial start.");
+    const prompts = [
+      { tell: "The shadow raises its saber high.", answer: "Block", options: ["Attack", "Block", "Dodge"] },
+      { tell: "The shadow overextends after a swing.", answer: "Attack", options: ["Attack", "Block", "Dodge"] },
+      { tell: "The floor glows under Dad's boots.", answer: "Dodge", options: ["Attack", "Block", "Dodge"] }
+    ];
+    const turn = prompts[Math.floor(Math.random() * prompts.length)];
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Final Duel</h1>
+          <p class="subtitle">Hits: ${hits}/3 | Focus: ${hp}</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Shadow</span>
+          ${turn.tell}
+          <br><br>
+          <span class="speaker">Mission</span>
+          ${message}
+        </div>
+        <div class="button-row">
+          ${turn.options.map((option) => `<button class="btn" data-duel="${option}">${option}</button>`).join("")}
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-duel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.duel === turn.answer) renderJediDuel(hits + 1, hp, charge, "Clean answer. The shadow loses ground.");
+        else renderJediDuel(hits, hp - 1, charge, "Wrong read. Adam: Bold. Incorrect, but bold.");
+      });
+    });
+  }
+
+  function renderJediLoss(message) {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Trial Failed</h1>
+          <p class="subtitle">No pity wins. The light side allows retries.</p>
+        </div>
+        <div class="dialogue"><span class="speaker">Adam</span>${message}</div>
+        <div class="button-row">
+          <button class="btn" id="retryJedi">Retry Trial</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#retryJedi").addEventListener("click", () => renderJediAsteroids());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderJediWin(charge) {
+    completeWorld("jedi");
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Starheart</h1>
+          <p class="subtitle">The Light Side Trial is complete.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          Not bad, Dad. You defeated a shadow, dodged space rocks, and only looked confused a normal amount.
+          <br><br>
+          <span class="speaker">Hayleigh</span>
+          Dada light!
+          <br><br>
+          <span class="speaker">Narrator</span>
+          The saber fades, but the light stays.
+          <br><br>
+          Some heroes win by being powerful. Dad wins because he keeps choosing what matters.
+          <br><br>
+          Starheart Token unlocked.
+        </div>
+        <button class="btn" id="hubAfterJedi">Return To Hub</button>
+      </section>
+    `);
+    document.querySelector("#hubAfterJedi").addEventListener("click", () => renderHub(`Starheart Token earned. Saber charge: ${charge}/3.`));
+  }
+
+  function renderGuardianIntro() {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Guardian of the Home Light</h1>
+          <p class="subtitle">Hunter. Arc subclass. Fireteam: Adam and Hayleigh.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Little Light</span>
+          Guardian ${esc(state.playerName)}, the Home Light is fading. The Distance is trying to make the road feel longer than love.
+          <br><br>
+          Recover five light fragments, charge Arc Burst, and bring the fireteam home.
+        </div>
+        <div class="button-row">
+          <button class="btn" id="startGuardian">Start Mission</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#startGuardian").addEventListener("click", () => renderGuardianMission());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function freshGuardianState(log = "A Taken echo blocks the path. Choose an action.") {
+    return {
+      hp: 100,
+      fragments: 0,
+      superCharge: 0,
+      enemyHp: 48,
+      boss: false,
+      dodging: false,
+      log
+    };
+  }
+
+  function renderGuardianMission(mission = freshGuardianState()) {
+    if (mission.hp <= 0) return renderGuardianLoss(mission.log);
+    if (mission.boss && mission.enemyHp <= 0) return renderGuardianWin();
+    if (!mission.boss && mission.fragments >= 5) {
+      mission.boss = true;
+      mission.enemyHp = 140;
+      mission.log = "The Distance steps into the light. Boss fight.";
+    }
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">${mission.boss ? "The Distance" : "Arc Patrol"}</h1>
+          <p class="subtitle">Fragments: ${mission.fragments}/5 | Arc Burst: ${mission.superCharge}%</p>
+        </div>
+        <div class="panel">
+          <div class="meter-list">
+            ${meter("Guardian HP", mission.hp)}
+            ${meter(mission.boss ? "The Distance" : "Echo HP", mission.enemyHp, mission.boss ? 140 : 48)}
+            ${meter("Arc Charge", mission.superCharge)}
+          </div>
+        </div>
+        <div class="dialogue"><span class="speaker">Mission Feed</span>${mission.log}</div>
+        <div class="button-row">
+          <button class="btn" data-guardian="shoot">Arc Shot</button>
+          <button class="btn secondary" data-guardian="knife">Lightning Knife</button>
+          <button class="btn secondary" data-guardian="dodge">Hunter Dodge</button>
+          <button class="btn warning" data-guardian="super" ${mission.superCharge < 100 ? "disabled" : ""}>Arc Burst</button>
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-guardian]").forEach((button) => {
+      button.addEventListener("click", () => guardianAction(mission, button.dataset.guardian));
+    });
+  }
+
+  function guardianAction(mission, action) {
+    let damage = 0;
+    let log = "";
+    if (action === "shoot") {
+      damage = 18 + Math.floor(Math.random() * 8);
+      mission.superCharge = clamp(mission.superCharge + 18, 0, 100);
+      log = "Arc Shot lands. The air smells like lightning.";
+    }
+    if (action === "knife") {
+      damage = 25 + Math.floor(Math.random() * 10);
+      mission.superCharge = clamp(mission.superCharge + 12, 0, 100);
+      log = "Lightning Knife hits hard. Adam: Stylish and probably against several safety rules.";
+    }
+    if (action === "dodge") {
+      mission.dodging = true;
+      mission.superCharge = clamp(mission.superCharge + 10, 0, 100);
+      log = "Hunter Dodge. Dad moves like the bill was due yesterday.";
+    }
+    if (action === "super") {
+      damage = mission.boss ? 62 : 48;
+      mission.superCharge = 0;
+      log = "Arc Burst detonates across the room. Hayleigh: Boom!";
+    }
+    mission.enemyHp -= damage;
+    if (!mission.boss && mission.enemyHp <= 0) {
+      mission.fragments += 1;
+      mission.enemyHp = 48 + mission.fragments * 7;
+      mission.hp = clamp(mission.hp + 6, 0, 100);
+      mission.log = `${log}<br>A light fragment returns home. Little Light: ${mission.fragments}/5 recovered.`;
+      return renderGuardianMission(mission);
+    }
+    const incoming = mission.boss ? 20 + Math.floor(Math.random() * 9) : 12 + Math.floor(Math.random() * 7);
+    const taken = mission.dodging ? Math.floor(incoming * 0.35) : incoming;
+    mission.dodging = false;
+    mission.hp -= taken;
+    mission.log = `${log}<br>${mission.boss ? "The Distance" : "The echo"} hits back for ${taken}.`;
+    renderGuardianMission(mission);
+  }
+
+  function renderGuardianLoss(message) {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Mission Failed</h1>
+          <p class="subtitle">The fireteam can retry.</p>
+        </div>
+        <div class="dialogue"><span class="speaker">Little Light</span>${message}<br><br>Distance is loud. Love is louder. Try again.</div>
+        <div class="button-row">
+          <button class="btn" id="retryGuardian">Retry Mission</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#retryGuardian").addEventListener("click", () => renderGuardianMission());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderGuardianWin() {
+    completeWorld("guardian");
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Lightheart</h1>
+          <p class="subtitle">The Home Light is restored.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Little Light</span>
+          The Distance is gone.
+          <br><br>
+          <span class="speaker">Adam</span>
+          Your fireteam is still here, Dad. Even when work pulls you out of town.
+          <br><br>
+          <span class="speaker">Narrator</span>
+          Some missions take Guardian far from home. This light always knows the way back.
+          <br><br>
+          Lightheart Token unlocked.
+        </div>
+        <button class="btn" id="hubAfterGuardian">Return To Hub</button>
+      </section>
+    `);
+    document.querySelector("#hubAfterGuardian").addEventListener("click", () => renderHub("Lightheart Token earned."));
+  }
+
+  function meter(label, value, max = 100) {
+    const percent = clamp(value / max * 100, 0, 100);
+    return `
+      <div>
+        <div class="meter-label"><span>${label}</span><span>${Math.max(0, Math.round(value))}/${max}</span></div>
+        <div class="meter"><div class="meter-fill" style="--meter:${percent}%;"></div></div>
+      </div>
+    `;
+  }
+
+  function renderFishingRig(message = "") {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">The Deep Blue Fight</h1>
+          <p class="subtitle">Marathon Key, Florida. One boat. One memory. One 228 lb swordfish.</p>
+        </div>
+        ${message ? `<div class="dialogue">${message}</div>` : ""}
+        <div class="panel ocean-panel">
+          <h2>Rig The Line</h2>
+          <p>Choose a setup. This level is more about the fight than perfect tuning.</p>
+          <div class="slider-grid">
+            ${tuneSlider("drag", "Drag", 3)}
+            ${tuneSlider("depth", "Bait Depth", 4)}
+            ${tuneSlider("hook", "Hook Set Timing", 3)}
+            ${tuneSlider("line", "Line Weight", 4)}
+            ${tuneSlider("patience", "Patience", 5)}
+          </div>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          Four hours later and somehow this fish still has better cardio than all of us.
+        </div>
+        <div class="button-row">
+          <button class="btn" id="startFishing">Head Offshore</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-tune]").forEach((input) => {
+      input.addEventListener("input", () => {
+        document.querySelector(`#${input.dataset.tune}Value`).textContent = input.value;
+      });
+    });
+    document.querySelector("#startFishing").addEventListener("click", () => {
+      const rig = {};
+      document.querySelectorAll("[data-tune]").forEach((input) => rig[input.dataset.tune] = Number(input.value));
+      renderFishingHook(rig);
+    });
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderFishingHook(rig, signal = "The rod tip is quiet.", misses = 0) {
+    if (misses >= 3) {
+      return renderFishingRig(`<span class="speaker">Adam</span>The fish stole the bait three times. I am not mad. I am just narrating your crimes.`);
+    }
+    const signals = ["quiet", "nibble", "twitch", "strike"];
+    const current = signal || signals[Math.floor(Math.random() * signals.length)];
+    const strike = current === "strike";
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Find The Bite</h1>
+          <p class="subtitle">Wait for the strike, then set the hook.</p>
+        </div>
+        <div class="panel ocean-panel">
+          <h2>Rod Tip</h2>
+          <p>${fishingSignalText(current)}</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          ${strike ? "That's not a nibble. Set it!" : "That was either a bite or the ocean judging you."}
+        </div>
+        <div class="button-row">
+          <button class="btn secondary" id="watchRod">Watch Rod</button>
+          <button class="btn" id="setHook">Set Hook</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#watchRod").addEventListener("click", () => {
+      const next = signals[Math.floor(Math.random() * signals.length)];
+      renderFishingHook(rig, next, misses);
+    });
+    document.querySelector("#setHook").addEventListener("click", () => {
+      if (strike) {
+        const cleanHook = rig.hook === 3;
+        renderFishingFight({
+          tension: cleanHook ? 42 : 58,
+          dadStamina: 100,
+          fishStamina: cleanHook ? 100 : 112,
+          progress: 0,
+          phase: "The Run",
+          log: cleanHook ? "Clean hook set. The swordfish turns and runs." : "Hook set was rough. The fish is angry and the line is already tight."
+        });
+      } else {
+        renderFishingHook(rig, "quiet", misses + 1);
+      }
+    });
+  }
+
+  function fishingSignalText(signal) {
+    return ({
+      quiet: "Small waves slap the hull. The line hums quietly.",
+      nibble: "A tiny tap. Maybe bait. Maybe attitude.",
+      twitch: "The rod twitches twice, then settles.",
+      strike: "The rod folds hard toward the water. Strike zone."
+    })[signal] || signal;
+  }
+
+  function renderFishingFight(fight) {
+    if (fight.tension >= 105) return renderFishingLoss("The line snaps. The ocean keeps the story for now.");
+    if (fight.dadStamina <= 0) return renderFishingLoss("Dad runs out of stamina. The fish pulls away before boat side.");
+    if (fight.fishStamina <= 0 || fight.progress >= 100) return renderFishingLand();
+
+    const phase = fight.progress > 72 ? "Boat Side" : fight.progress > 34 ? "The Grind" : "The Run";
+    fight.phase = phase;
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">${phase}</h1>
+          <p class="subtitle">228 lb Swordfish | Marathon Key, Florida</p>
+        </div>
+        <div class="panel ocean-panel">
+          <div class="meter-list">
+            ${meter("Line Tension", fight.tension)}
+            ${meter("Dad Stamina", fight.dadStamina)}
+            ${meter("Fish Stamina", fight.fishStamina, 120)}
+            ${meter("Boat-Side Progress", fight.progress)}
+          </div>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Deck</span>
+          ${fight.log}
+          <br><br>
+          <span class="speaker">Adam</span>
+          ${fishingPhaseAdvice(phase)}
+        </div>
+        <div class="button-row">
+          <button class="btn" data-fishing="reel">Reel</button>
+          <button class="btn secondary" data-fishing="ease">Ease Drag</button>
+          <button class="btn warning" data-fishing="pump">Pump Rod</button>
+        </div>
+      </section>
+    `);
+    document.querySelectorAll("[data-fishing]").forEach((button) => {
+      button.addEventListener("click", () => fishingAction(fight, button.dataset.fishing));
+    });
+  }
+
+  function fishingPhaseAdvice(phase) {
+    return ({
+      "The Run": "Do not horse it. Let him run, but do not let him own the boat.",
+      "The Grind": "This is the part where the clock gets weird and everyone pretends their arms do not hurt.",
+      "Boat Side": "He's right there. Don't get greedy."
+    })[phase];
+  }
+
+  function fishingAction(fight, action) {
+    const next = { ...fight };
+    if (action === "reel") {
+      next.fishStamina -= 10;
+      next.progress += 8;
+      next.tension += 14;
+      next.dadStamina -= 10;
+      next.log = "Dad reels. The fish gives up water one stubborn foot at a time.";
+    }
+    if (action === "ease") {
+      next.tension -= 20;
+      next.dadStamina += 7;
+      next.fishStamina += 4;
+      next.log = "Dad eases the drag. The line breathes, but the fish steals a little distance.";
+    }
+    if (action === "pump") {
+      if (next.tension < 76) {
+        next.fishStamina -= 18;
+        next.progress += 14;
+        next.tension += 19;
+        next.dadStamina -= 15;
+        next.log = "Pump and reel. The swordfish comes closer.";
+      } else {
+        next.tension += 24;
+        next.dadStamina -= 12;
+        next.log = "Pump was too greedy with high tension. The line screams.";
+      }
+    }
+    if (Math.random() < 0.32) {
+      next.tension += 8;
+      next.progress -= 3;
+      next.log += "<br>The swordfish surges. Dad has entered negotiations with a sea sword.";
+    }
+    next.tension = clamp(next.tension, 0, 120);
+    next.dadStamina = clamp(next.dadStamina, -10, 100);
+    next.fishStamina = clamp(next.fishStamina, -10, 120);
+    next.progress = clamp(next.progress, 0, 100);
+    renderFishingFight(next);
+  }
+
+  function renderFishingLoss(message) {
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Fish Lost</h1>
+          <p class="subtitle">No pity wins offshore either.</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          ${message}
+          <br><br>
+          If you lose this fish, I am telling the story dramatically forever. So maybe try again.
+        </div>
+        <div class="button-row">
+          <button class="btn" id="retryFishing">Retry Fight</button>
+          <button class="btn secondary" id="backHub">Back To Hub</button>
+        </div>
+      </section>
+    `);
+    document.querySelector("#retryFishing").addEventListener("click", () => renderFishingRig());
+    document.querySelector("#backHub").addEventListener("click", () => renderHub());
+  }
+
+  function renderFishingLand() {
+    completeWorld("fishing");
+    render(`
+      <section class="screen">
+        <div class="hero-card">
+          <h1 class="title">Tideheart</h1>
+          <p class="subtitle">228 lb Swordfish Landed | Marathon Key, Florida</p>
+        </div>
+        <div class="dialogue">
+          <span class="speaker">Adam</span>
+          I still remember that trip.
+          <br><br>
+          Not just the fish. The boat. The waiting. Watching you fight something bigger than both of us expected.
+          <br><br>
+          And you did not let go.
+          <br><br>
+          <span class="speaker">Narrator</span>
+          Some memories are measured in pounds. Some are measured in hours.
+          <br><br>
+          The best ones are measured by who was standing beside you.
+          <br><br>
+          Tideheart Token unlocked.
+        </div>
+        <button class="btn" id="hubAfterFishing">Return To Hub</button>
+      </section>
+    `);
+    document.querySelector("#hubAfterFishing").addEventListener("click", () => renderHub("Tideheart Token earned."));
+  }
+
   function renderFinale() {
     render(`
       <section class="screen">
@@ -1225,7 +1852,7 @@
           Dada!
           <br><br>
           <span class="speaker">Narrator</span>
-          The five worlds glow together. The final message is waiting to be written.
+          The six worlds glow together. The final message is waiting to be written.
         </div>
         <button class="btn" id="backHub">Back To Hub</button>
       </section>

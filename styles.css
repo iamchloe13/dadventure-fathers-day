@@ -467,6 +467,74 @@ canvas {
   grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
 }
 
+.challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.lane-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.lane-card,
+.stat-card {
+  min-height: 96px;
+  border-radius: 20px;
+  border: 3px solid rgba(23, 44, 45, 0.16);
+  background: rgba(255, 250, 240, 0.82);
+  padding: 14px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-weight: 900;
+}
+
+.lane-card.active {
+  outline: 5px solid var(--ember);
+  background: rgba(255, 207, 90, 0.82);
+}
+
+.meter-list {
+  display: grid;
+  gap: 12px;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 900;
+}
+
+.meter {
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(23, 44, 45, 0.15);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  width: var(--meter);
+  background: linear-gradient(90deg, var(--moss), var(--sun), var(--ember));
+}
+
+.ocean-panel {
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.28), transparent 3rem),
+    radial-gradient(circle at 70% 66%, rgba(255, 255, 255, 0.2), transparent 4rem),
+    linear-gradient(145deg, #123b53, #1e7b8c 55%, #93d1c8);
+  color: #fff7e1;
+  border-color: rgba(255, 247, 225, 0.32);
+}
+
+.ocean-panel .meter {
+  background: rgba(255, 247, 225, 0.22);
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
