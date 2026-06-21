@@ -1,26 +1,34 @@
-# Dadventure: The Six Worlds of Father's Day
+# Dadventure: Father's Day Rescue
 
-Static mobile web/PWA game prototype. No Python packages or JavaScript packages are required.
+Static web game and installable PWA built for GitHub Pages deployment.
+
+## Production Structure
+
+This is a clean split static-site build:
+
+- `index.html`: app entry point
+- `styles.css`: shared UI and game layout styles
+- `src/app.js`: main game flow, hub, motocross world, and route loading
+- `src/tinkerbell-dungeon.js`: Tinker Bell pirate ship dungeon and 3-deck Hook battle
+- `vendor/three.module.js`: checked-in Three.js runtime for static hosting
+- `service-worker.js`: offline/static asset caching
+- `manifest.webmanifest`: install metadata for supported devices
+
+All runtime paths are relative so the site works from a GitHub Pages repository URL.
 
 ## Run Locally
-
-From this folder:
 
 ```powershell
 python -m http.server 8000
 ```
 
-Or, with Node installed:
+or
 
 ```powershell
 npm run serve
 ```
 
-Then open:
-
-```text
-http://localhost:8000
-```
+Then open `http://localhost:8000`.
 
 ## Validate
 
@@ -28,44 +36,58 @@ http://localhost:8000
 npm test
 ```
 
-This currently runs a JavaScript syntax check against `src/app.js`.
-It also checks that required game files, world IDs, tokens, and cached assets are present.
+This checks JavaScript syntax and validates that the required production files and cached assets are present.
 
-The game can also be opened directly through `index.html`, but the local server is better for PWA/service worker testing.
+## GitHub Pages Deployment
 
-## Controls
+1. Create a new GitHub repository.
+2. Upload the project files from this folder to the repository root.
+3. Commit and push the files.
+4. In GitHub, open the repository.
+5. Go to `Settings`.
+6. Open `Pages`.
+7. Under `Build and deployment`, choose:
+   - `Source`: `Deploy from a branch`
+   - `Branch`: `main` (or your default branch)
+   - `Folder`: `/ (root)`
+8. Save the settings.
+9. Wait for GitHub Pages to publish the site.
+10. GitHub will show the live URL near the top of the Pages settings panel.
 
-- Mobile: use the on-screen buttons.
-- Desktop general testing: arrow keys or WASD where movement is supported.
-- Motocross: Left/Right or A/D steer, Up/W/Space gas, Shift/Enter/B trick or boost.
-- Creature League map: arrow keys or WASD move Dad around the map.
+If the site shows an older build after an update, hard refresh once so the browser picks up the latest service worker cache version.
 
-If the browser shows an older version after changes, do a hard refresh or restart the local server. The service worker cache is versioned, but browsers can still hold onto old static files briefly.
+## How To Play
 
-## GitHub Desktop Workflow
+The page uses a normal scrolling layout:
 
-After changes are committed locally:
+- On phones and tablets, scroll down slightly if needed so the whole game area and touch controls are visible together.
+- The Tinker Bell world places the game canvas above the controls panel.
+- The motocross world uses its own race HUD and touch buttons when applicable.
 
-1. Open GitHub Desktop.
-2. Confirm the repository is `PythonProject2` / Dadventure.
-3. Review any changed files.
-4. Commit local changes if needed.
-5. Click `Push origin` to upload them to the private GitHub repository.
+### Controls
 
-For Adam to test from another computer, add him as a collaborator on the private repository. He can clone/download the repo and run the same local server command.
+- Mobile:
+  - Use the on-screen D-pad and action buttons.
+- Desktop:
+  - Movement: `Arrow Keys` or `WASD`
+  - Tinker Bell attack: `Space`
+  - Tinker Bell open/interact: `E`
+  - Motocross gas: `Up`, `W`, or `Space`
+  - Motocross trick/boost: `Shift`, `Enter`, or `B`
 
-## Current Scope
+## Current Included Features
 
-- Pokemon-style intro with player name entry.
-- Hub with six worlds in any order.
-- Local progress saving.
-- First playable motocross level with chase-style race view.
-- First playable Creature League level.
-- First playable Jedi, Destiny, and Deep Blue Fight levels.
-- First playable Pixie Rescue level.
-- Placeholder final letter ending with six-token gallery.
+- Intro and player naming flow
+- Hub world selection
+- Motocross world
+- Tinker Bell pirate ship world
+- Three-deck dungeon progression
+- Tick-Tock crocodile boss mechanic
+- Shuffled no-repeat Adam damage dialogue
+- Hook cinematic defeat, key drop, and final cage rescue sequence
+- Final unlock flow after both worlds are completed
 
 ## Planning Files
 
-- `PLAYTEST.md` has the manual test checklist.
-- `CONTENT-TODO.md` lists personal details still worth collecting.
+- `PLAYTEST.md`: manual testing checklist
+- `CONTENT-TODO.md`: content questions and personal detail tracking
