@@ -1032,6 +1032,22 @@ canvas {
     min-height: 0;
   }
 
+  .tinker-hud {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .tinker-hud span {
+    white-space: normal;
+  }
+
+  .tinker-screen .race-hud {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
   .tinker-controls {
     padding-inline: 0;
     gap: 6px;

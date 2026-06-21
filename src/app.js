@@ -1449,7 +1449,7 @@
       ended = true;
       state.motoAttempts += 1;
       saveState();
-      if (playerFinishedFirst && !(attemptNo === 1 && !exact)) {
+      if (playerFinishedFirst && exact) {
         completeWorld("moto");
         if (exact) renderMotoTechScene3D();
         else renderMotoWin(false);
@@ -1458,7 +1458,7 @@
       } else {
         renderMotoGarage(`
           <span class="speaker">Adam</span>
-          ${attemptNo === 1 && !exact ? "First run exposed the setup. The rival edges you out at the line." : "He got you that time. No pity wins in this family."}
+          ${playerFinishedFirst ? "You rode well, but without the perfect tune the bike just does not have the final edge. The rival still gets the win." : attemptNo === 1 ? "First run exposed the setup. The rival edges you out at the line." : "He got you that time. No pity wins in this family."}
           ${motoAdvice(tune)}
         `);
       }
@@ -2053,7 +2053,7 @@
       ended = true;
       state.motoAttempts += 1;
       saveState();
-      if (playerFinishedFirst && !(attemptNo === 1 && !exact)) {
+      if (playerFinishedFirst && exact) {
         completeWorld("moto");
         if (exact) renderMotoTechScene();
         else renderMotoWin(false);
@@ -2062,7 +2062,7 @@
       } else {
         renderMotoGarage(`
           <span class="speaker">Adam</span>
-          ${attemptNo === 1 && !exact ? "First run exposed the setup. The rival edges you out at the line." : "He got you that time. No pity wins in this family."}
+          ${playerFinishedFirst ? "You rode well, but without the perfect tune the bike just does not have the final edge. The rival still gets the win." : attemptNo === 1 ? "First run exposed the setup. The rival edges you out at the line." : "He got you that time. No pity wins in this family."}
           ${motoAdvice(tune)}
         `);
       }
