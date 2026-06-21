@@ -2,7 +2,7 @@
   "use strict";
 
   const SAVE_KEY = "dadventure-save-v1";
-  const APP_VERSION = "0.3.14";
+  const APP_VERSION = "0.3.15";
   const app = document.querySelector("#app");
 
   const worlds = [
@@ -23,11 +23,19 @@
   ];
 
   const motoTarget = {
-    tires: 4,
-    suspension: 3,
-    gearing: 3,
-    engine: 4,
-    timing: 3
+    tires: 3,
+    suspension: 1,
+    gearing: 5,
+    engine: 3,
+    timing: 4
+  };
+
+  const MOTO_DEFAULT_TUNE = {
+    tires: 2,
+    suspension: 2,
+    gearing: 2,
+    engine: 2,
+    timing: 2
   };
 
   const MOTO_VIEW_DISTANCE = 0.24;
@@ -212,6 +220,7 @@
       avatar: "",
       completed: {},
       motoAttempts: 0,
+      lastTune: { ...MOTO_DEFAULT_TUNE },
       creature: {
         caught: [],
         dadX: 50,
@@ -526,7 +535,7 @@
   }
 
   function renderMotoGarage(message = "") {
-    const tune = { ...motoTarget, ...(state.lastTune || {}) };
+    const tune = { ...MOTO_DEFAULT_TUNE };
     render(`
       <section class="screen">
         <div class="hero-card">
@@ -5137,7 +5146,7 @@
         { speaker: "Adam", text: "The bike survived, Tinker Bell is safe, and Pops somehow made this look like a plan." },
         { speaker: "Adam", text: "I am still going to roast a few choices later, but for now... yeah. That was pretty heroic." },
         { speaker: "Hayleigh", text: "Dada!" },
-        { speaker: "Narrator", text: "You beat every world, but you were already our hero before the game started." }
+        { speaker: "Adam & Hayleigh", text: "You have always been a hero to us." }
       ],
       onPrimary: () => renderHub(),
       onSecondary: () => renderHub()

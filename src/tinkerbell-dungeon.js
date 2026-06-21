@@ -103,6 +103,7 @@ class TinkerbellDungeon {
     this.raf = 0;
     this.done = false;
     this.damageLinePool = [];
+    this.bossDeaths = 0;
   }
 
   start() {
@@ -1130,14 +1131,14 @@ class TinkerbellDungeon {
     );
     mesh.position.set(enemy.gridX - this.center.x, 0.7, enemy.gridZ - this.center.z);
     this.groups.effects.add(mesh);
-    this.projectiles.push({ x: enemy.gridX, z: enemy.gridZ, dir, mesh, life: 3 });
+    this.projectiles.push({ x: enemy.gridX, z: enemy.gridZ, dir, mesh, life: 3, speed: 5.8 * this.getHookProjectileSpeedFactor() });
   }
 
   updateProjectiles(dt) {
     this.projectiles = this.projectiles.filter((projectile) => {
       projectile.life -= dt;
-      projectile.x += DIRS[projectile.dir].x * dt * 5.8;
-      projectile.z += DIRS[projectile.dir].z * dt * 5.8;
+      projectile.x += DIRS[projectile.dir].x * dt * projectile.speed;
+      projectile.z += DIRS[projectile.dir].z * dt * projectile.speed;
       projectile.mesh.position.set(projectile.x - this.center.x, 0.7, projectile.z - this.center.z);
       projectile.mesh.rotation.y += dt * 12;
       const gx = Math.round(projectile.x);
@@ -1304,8 +1305,9 @@ class TinkerbellDungeon {
     }
     this.showDamageOverlay(this.nextDamageLine());
     this.updateHud("Pops took a hit. Keep moving.");
-    if (this.mainDeck && p.health === 1 && !this.emergencyChestSpawned) this.spawnEmergencyChest();
+    if (this.mainDeck && p.health === 2 && !this.emergencyChestSpawned) this.spawnEmergencyChest();
     if (p.health <= 0) {
+      if (this.mainDeck) this.bossDeaths += 1;
       this.loadLevel(this.levelIndex, MAX_HEALTH);
       this.updateHud("Dad got knocked back to the start. Fairy dust keeps him going.");
     }
@@ -1705,6 +1707,12 @@ class TinkerbellDungeon {
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+  }
+
+  getHookProjectileSpeedFactor() {
+    if (this.bossDeaths >= 3) return 0.5;
+    if (this.bossDeaths >= 2) return 0.75;
+    return 1;
   }
 
   updateHud(status) {
