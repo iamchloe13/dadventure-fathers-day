@@ -1329,7 +1329,7 @@
       if (heatLocked) {
         player.heat = 0;
       } else {
-        if (controls.gas) player.heat += dt * (7 + tune.engine * 1.8);
+        if (controls.gas) player.heat += dt * (3.5 + tune.engine * 0.9);
         else player.heat = Math.max(0, player.heat - dt * 10.4);
         if (player.boost > 0) player.heat += dt * 16;
         if (player.heat > 100) trigger3DOverheat();
@@ -1985,7 +1985,7 @@
         if (heatLocked) {
           player.heat = 0;
         } else {
-          if (controls.gas) player.heat += dt * (7 + tune.engine * 1.8);
+          if (controls.gas) player.heat += dt * (3.5 + tune.engine * 0.9);
           else player.heat = Math.max(0, player.heat - dt * 10.4);
           if (player.boost > 0) player.heat += dt * 16;
           if (player.heat > 100) triggerOverheat();
