@@ -493,8 +493,8 @@
         </div>
         ${message ? `<div class="dialogue">${message}</div>` : ""}
         <div class="panel">
-          <h2>Development Race Code</h2>
-          <p>Enter 101824 to lock engine heat off for testing. Enter 000000 or leave blank for normal skill and tuning behavior.</p>
+          <h2>Race Cheat Code</h2>
+          <p>If you don't have a cheat code just hit continue to garage so you can flex your mechanical skills. This box is only for those who are mechanically a blonde.... Good luck!</p>
           <form id="motoDevForm">
             <input id="motoDevCode" class="name-input" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="000000">
             <button class="btn" type="submit">Continue To Garage</button>
